@@ -1,0 +1,23 @@
+---
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: validate nginx configuration
+  command: nginx -t -c /etc/nginx/nginx.conf
+  changed_when: False
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+
+- name: restart php-fpm
+  service: name=php74-php-fpm state=restarted
+
+- name: restart mariadb
+  service:
+    name: mariadb
+    state: restarted
+
+- name: restart redis
+  service:
+    name: redis
+    state: restarted

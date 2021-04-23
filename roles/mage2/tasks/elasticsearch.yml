@@ -1,0 +1,23 @@
+---
+
+- name: Install Java Development Kit.
+  yum:
+    name: "java-1.8.0-openjdk-devel.x86_64"
+    state: present
+
+- name: Add official elasticsearch repository
+  yum_repository:
+    name: Elasticsearch
+    description: Official Elasticsearch repository
+    baseurl: "https://artifacts.elastic.co/packages/7.x/yum"
+    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    gpgcheck: yes
+
+- name: Ensure elasticsearch is installed.
+  yum:
+    name: "{{ elasticsearch_package_name }}"
+    state: present
+    enablerepo: "Elasticsearch"
+
+- name: Ensure elasticsearch is started and enabled to start at boot.
+  service: name="elasticsearch.service" state=started enabled=yes

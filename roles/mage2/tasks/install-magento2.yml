@@ -1,0 +1,89 @@
+---
+
+- name: Check if magento 2 is already installed
+  stat:
+    path: "{{ magento_root_dir }}/app/etc/env.php"
+  register: mage2_installed
+
+- name: Install magento 2 from CLI
+  shell: php bin/magento setup:install \
+    --cleanup-database \
+    --backend-frontname={{ magento_admin_frontname }} \
+    --session-save=files \
+    --db-host=localhost \
+    --db-user={{ magento_mysql_user }} \
+    --db-password={{ magento_mysql_password }} \
+    --db-name={{ magento_mysql_dbname }} \
+    --use-rewrites=1 \
+    --admin-user={{ magento_admin_user }} \
+    --admin-password={{ magento_admin_password }} \
+    --admin-email={{ magento_admin_email }} \
+    --admin-firstname={{ magento_admin_firstname }} \
+    --admin-lastname={{ magento_admin_lastname }} \
+    --language={{ magento_language }} \
+    --currency={{ magento_currency }} \
+    --base-url={{ magento_base_url }}
+  args:
+    chdir: "{{ magento_root_dir }}"
+  when: mage2_installed.stat.exists == False
+
+- name: Set magento to developer mode
+  shell: php bin/magento deploy:mode:set developer
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Clear the cached generated folders
+  shell: rm -rf generated/metadata/* generated/code/*
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Clear the remaining cache
+  shell: php bin/magento cache:clean
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Copy auth configuration in place.
+  template:
+    src: "{{ auth_conf_template }}"
+    dest: "{{ auth_conf_file_path }}"
+    owner: nginx
+    group: "{{ root_group }}"
+    mode: 0644
+
+- name: Self upgrade composer for compatibility
+  shell: /usr/local/bin/composer self-update --2
+
+- name: Install sample data
+  shell: php bin/magento sampledata:deploy
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Install the latest changes we’ve just made 
+  shell: php bin/magento setup:upgrade
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Reindex magento 2
+  shell: php ./bin/magento indexer:reindex
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Flush magento 2 cache
+  shell: php bin/magento cache:flush
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Set file/directory ownership to nginx user
+  file:
+    path: "{{ magento_root_dir }}"
+    owner: "{{ __nginx_user }}"
+    group: "{{ __nginx_user }}"
+    recurse: yes
+
+- name: Setup magento 2 cron jobs
+  shell: php bin/magento cron:install
+  args:
+    chdir: "{{ magento_root_dir }}"
+
+- name: Reload nginx
+  shell: nginx -s reload

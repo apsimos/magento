@@ -1,0 +1,24 @@
+---
+- name: download composer
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: /tmp/installer
+
+- name: install composer
+  shell: cat /tmp/installer | php74 -- --install-dir=/usr/local/bin
+  args:
+    creates: /usr/local/bin/composer
+
+- name: rename composer.phar to composer
+  shell: mv /usr/local/bin/composer.phar /usr/local/bin/composer
+  args:
+    creates: /usr/local/bin/composer
+
+- name: make composer executable
+  file: 
+    path: /usr/local/bin/composer
+    mode: a+x
+    state: file
+
+- name: Self downgrade composer for compatibility
+  shell: /usr/local/bin/composer self-update 1.10.16

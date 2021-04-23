@@ -1,0 +1,37 @@
+---
+- hosts: magento_servers
+  become: true
+  roles:
+    - role: mage2
+      nginx_vhosts:
+        - listen: "80"
+          server_name: "example.com"
+          mage_root: "/var/www/html"
+      nginx_upstreams:
+        - name: fastcgi_backend
+          servers: {
+            "127.0.0.1:9000"
+          }    
+      magento_root_dir: "/var/www/html/"
+      magento_account_public_key: "ENTER_public_key"
+      magento_account_private_key: "ENTER_private_key"     
+      mariadb_bind_address: '127.0.0.1'
+      mariadb_root_password: 'supersupersecret'
+      mariadb_databases:
+        - name: mage2db
+      mariadb_users:
+        - name: mage2usr
+          password: 'supersecret@'
+          priv: "mage2db.*:ALL"
+      magento_mysql_user: "mage2usr"
+      magento_mysql_password: "supersecret@"
+      magento_mysql_dbname: "mage2db"
+      magento_admin_user: "admin"
+      magento_admin_password: "adminadmin!1"
+      magento_admin_email: "admin@admin.com"
+      magento_admin_firstname: "Admin"
+      magento_admin_lastname: "Adminer"
+      magento_language: "en_US"
+      magento_currency: "USD"
+      magento_base_url: "http://example.com"
+      auth_conf_template: "auth.j2"
