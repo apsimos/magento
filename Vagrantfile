@@ -7,8 +7,9 @@ Vagrant.configure("2") do |config|
       echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
     SHELL
   end
-    config.vm.provider "virtualbox" do |vb|
-      vb.gui = false
-      vb.memory = "8192"
+    config.vm.provider "virtualbox" do |v|
+      v.gui = false
+      v.memory = "8192"
+      v.cpus = "2"
     end
 end

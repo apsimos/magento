@@ -3,6 +3,17 @@
 - name: Include OS-specific variables.
   include_vars: "{{ ansible_os_family }}.yml"
 
+# Disable selinux
+- name: Install libselinux-python
+  yum:
+    name: "libselinux-python"
+    state: present
+
+- name: Put SELinux in permissive mode
+  selinux:
+    policy: targeted
+    state: permissive
+
 # Define nginx user
 - name: Define nginx_user.
   set_fact:
@@ -51,7 +62,7 @@
   service: name="{{ mariadb_service }}" state=started enabled=yes
 
 # Setup/install Elasticsearch.
-- include: elasticsearch.yml
+- include: setup-elasticsearch.yml
   when: ansible_os_family == 'RedHat'
 
 # Setup/install Redis tasks.

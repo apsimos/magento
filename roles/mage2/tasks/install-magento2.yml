@@ -84,6 +84,3 @@
   shell: php bin/magento cron:install
   args:
     chdir: "{{ magento_root_dir }}"
-
-- name: Reload nginx
-  shell: nginx -s reload
